@@ -27,4 +27,4 @@ if __name__ == '__main__':
         )
         print(f"News {news.title} was sent")
         photo.unlink()
-        time.sleep(5)
+        time.sleep(3)
