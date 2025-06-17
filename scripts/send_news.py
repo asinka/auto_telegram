@@ -16,8 +16,11 @@ source = N1NewsSource()
 
 if __name__ == '__main__':
     news_to_post = source.get_news()
-    for news in news_to_post:
-        # photo = requests.get(news.img_url).content
+
+    while news_to_post:
+        news = source.get_one_news()
+        if not news:
+            continue
         photo = source.create_mem_from_photo(news=news)
 
         bot.send_photo(
@@ -28,3 +31,17 @@ if __name__ == '__main__':
         print(f"News {news.title} was sent")
         photo.unlink()
         time.sleep(3)
+
+
+    # for news in news_to_post:
+    #     # photo = requests.get(news.img_url).content
+    #     photo = source.create_mem_from_photo(news=news)
+    #
+    #     bot.send_photo(
+    #         chat_id=chat_id,
+    #         photo=open(photo, 'rb'),
+    #         caption=news.summary
+    #     )
+    #     print(f"News {news.title} was sent")
+    #     photo.unlink()
+    #     time.sleep(3)
