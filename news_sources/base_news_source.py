@@ -1,18 +1,19 @@
+import os
 from abc import ABC, abstractmethod
-from datetime import date
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from pathlib import Path
 import textwrap
 
 from bs4 import BeautifulSoup
 import requests
 from fake_useragent import FakeUserAgent
-from telebot import formatting
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from news_sources.types import News, NewsColorsAndFonts
+from storages.news_storage import NewsStorage
+
 
 class BaseNewsSource(ABC):
     SOURCE = ''
@@ -29,6 +30,18 @@ class BaseNewsSource(ABC):
     def get_news(self) -> List[News]:
         raw_news = self._get_raw_today_news()
         return self._map_raw_news(raw_news=raw_news)
+
+    def get_one_news(self) -> Optional[News]:
+        all_news = self.get_news()
+        storage = NewsStorage()
+
+        for one_news in all_news:
+            if storage.exist_element(element=one_news) or self._is_duplicated_news(one_news=one_news):
+                continue
+
+            storage.store_element(element=one_news)
+            return one_news
+        return None
 
     @staticmethod
     def _get_headers() -> Dict[str, str]:
@@ -200,7 +213,7 @@ class BaseNewsSource(ABC):
         news_from_storage = list(data_from_storage.keys())
         corpus = [
             f"{one_news.title} {one_news.summary}"
-            for one_news in news_from_storage[-35:]
+            for one_news in news_from_storage[-30 :]
         ]
         corpus.append(f"{one_news.title} {one_news.summary}")
 
