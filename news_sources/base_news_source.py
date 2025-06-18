@@ -1,5 +1,6 @@
 import os
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import List, Dict, Tuple, Optional
 from pathlib import Path
 import textwrap
@@ -12,6 +13,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from news_sources.types import News, NewsColorsAndFonts
+from rewriters.chat_gpt_rewriter import ChatGPTRewriter
 from storages.news_storage import NewsStorage
 
 
@@ -40,8 +42,21 @@ class BaseNewsSource(ABC):
                 continue
 
             storage.store_element(element=one_news)
-            return one_news
+            return self._rewrite_one_news(one_news)
         return None
+
+    @staticmethod
+    def _rewrite_one_news(one_news) -> News:
+        copy_one_news = deepcopy(one_news)
+        rewriter = ChatGPTRewriter()
+
+        new_title = rewriter.rewrite_title(title=one_news.title)
+        new_summary = rewriter.rewrite_summary(summary=one_news.summary)
+
+        copy_one_news.title = new_title
+        copy_one_news.summary = new_summary
+
+        return copy_one_news
 
     @staticmethod
     def _get_headers() -> Dict[str, str]:
