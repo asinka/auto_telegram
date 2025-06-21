@@ -1,10 +1,10 @@
 import os
 import time
 
-from telebot import TeleBot, formatting
-import requests
+from telebot import TeleBot
 
 from news_sources.n1_news_source import N1NewsSource
+from utils.alerting import handle_exception
 
 bot = TeleBot(
     token=os.environ.get('BOT_TOKEN'),
@@ -17,31 +17,22 @@ source = N1NewsSource()
 if __name__ == '__main__':
     news_to_post = source.get_news()
 
-    while news_to_post:
-        news = source.get_one_news()
-        if not news:
-            continue
-        photo = source.create_mem_from_photo(news=news)
+    try:
+        raise ValueError("Error in sending news")
+        while news_to_post:
+            news = source.get_one_news()
+            if not news:
+                continue
+            photo = source.create_mem_from_photo(news=news)
 
-        bot.send_photo(
-            chat_id=chat_id,
-            photo=open(photo, 'rb'),
-            caption=news.summary
-        )
-        print(f"News {news.title} was sent")
-        photo.unlink()
-        time.sleep(3)
+            bot.send_photo(
+                chat_id=chat_id,
+                photo=open(photo, 'rb'),
+                caption=news.summary
+            )
+            print(f"News {news.title} was sent")
+            photo.unlink()
+            time.sleep(10)
+    except Exception as e:
+        handle_exception(bot=bot, e=e)
 
-
-    # for news in news_to_post:
-    #     # photo = requests.get(news.img_url).content
-    #     photo = source.create_mem_from_photo(news=news)
-    #
-    #     bot.send_photo(
-    #         chat_id=chat_id,
-    #         photo=open(photo, 'rb'),
-    #         caption=news.summary
-    #     )
-    #     print(f"News {news.title} was sent")
-    #     photo.unlink()
-    #     time.sleep(3)
